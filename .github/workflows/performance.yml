@@ -1,0 +1,27 @@
+name: Performance Test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install k6
+        run: |
+          sudo apt update
+          sudo apt install -y k6
+
+      - name: Run tests
+        run: k6 run --out json=results.json tests/test_constant.js
+
+      - name: Upload results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: tests/results.json
