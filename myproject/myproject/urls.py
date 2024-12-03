@@ -16,18 +16,38 @@ Including another URLconf
 """
 
 
-from django.contrib import admin
 from django.http import HttpResponse
 from django.contrib import admin
 from django.urls import path
-from django.http import HttpResponse
+from django.core.cache import cache
+from django.http import JsonResponse
+import time
+
+# Импортируйте ваше представление
 
 from django.urls import path, include
 def home(request):
     return HttpResponse("Welcome to the Django Project!")
+# Представление для маршрута /get-product/
+def get_product_info(request):
+    cache_key = 'product_info'
+    cached_data = cache.get(cache_key)
+
+    if cached_data:
+        return JsonResponse({'status': 'from_cache', 'data': cached_data})
+
+    # Симуляция долгого вычисления
+    time.sleep(3)
+    product_data = {'id': 1, 'name': 'Laptop', 'price': 1200}
+
+    cache.set(cache_key, product_data, timeout=60)  # Кешируем данные на 60 секунд
+    return JsonResponse({'status': 'from_db', 'data': product_data})
 
 urlpatterns = [
+
     path('admin/', admin.site.urls),
-    path('', home, name='home'),  # Маршрут для главной страницы
-    path('', include('django_prometheus.urls'))
+    path('', home, name='home'),
+    path('', include('django_prometheus.urls')),
+    path('get-product/', get_product_info, name='get-product'),
+
 ]
